@@ -139,3 +139,314 @@
     </script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Last Million | البورصة والأكاديمية</title>
+    <style>
+        :root { --gold: #d4af37; --forest: #050a05; --up: #00ff88; --down: #ff4444; }
+        body { margin: 0; background: var(--forest); color: white; font-family: 'Cairo', sans-serif; overflow: hidden; }
+        .page { display: none; height: 100vh; padding: 15px; box-sizing: border-box; overflow-y: auto; padding-bottom: 100px; }
+        .page.active { display: block; }
+        
+        /* شريط الحالة العلوي */
+        .header-stats { background: rgba(0,0,0,0.9); padding: 10px; border-bottom: 2px solid var(--gold); display: flex; justify-content: space-around; font-size: 14px; position: sticky; top: 0; z-index: 100; }
+
+        /* الشارت الملكي */
+        .exchange-card { background: #111; border: 1px solid #333; border-radius: 15px; padding: 15px; margin-bottom: 20px; }
+        #chart-canvas { width: 100%; height: 150px; background: #0a0a0a; border-radius: 10px; position: relative; overflow: hidden; }
+        .chart-line { position: absolute; bottom: 50%; left: 0; width: 100%; height: 2px; background: var(--up); box-shadow: 0 0 10px var(--up); transition: 0.5s; }
+
+        /* أزرار التداول */
+        .trade-actions { display: flex; gap: 10px; margin-top: 15px; }
+        .trade-btn { flex: 1; border: none; padding: 12px; border-radius: 8px; font-weight: bold; color: white; cursor: pointer; }
+        .btn-up { background: var(--up); }
+        .btn-down { background: var(--down); }
+
+        /* الأكاديمية */
+        .lesson-card { background: #1a1a1a; border-radius: 12px; padding: 15px; margin-bottom: 15px; border-left: 4px solid var(--gold); }
+        .lesson-status { font-size: 12px; color: var(--gold); margin-bottom: 5px; }
+        .claim-btn { background: var(--gold); border: none; padding: 5px 15px; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+
+        /* الملاحة السفلى */
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid var(--gold); z-index: 1000; }
+        .nav-item { font-size: 11px; color: #555; text-align: center; flex: 1; cursor: pointer; }
+        .nav-item.active { color: var(--gold); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="header-stats">
+        <div>💰 $LAST: <span id="balance">0.00</span></div>
+        <div>📈 السعر: <span id="current-price" style="color:var(--up)">$1.00</span></div>
+    </div>
+
+    <div id="exchange" class="page active">
+        <h3 style="color: var(--gold); text-align: center;">البورصة الملكية 📈</h3>
+        <div class="exchange-card">
+            <div id="chart-canvas">
+                <div id="chart-line" class="chart-line"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px;">
+                <span>24h High: $1.70</span>
+                <span>24h Low: $0.95</span>
+            </div>
+        </div>
+        
+        <div style="text-align: center; padding: 10px;">
+            <p style="font-size: 14px;">توقع اتجاه السعر واربح الضعف!</p>
+            <div class="trade-actions">
+                <button class="trade-btn btn-up" onclick="predict('up')">صعود 📈</button>
+                <button class="trade-btn btn-down" onclick="predict('down')">هبوط 📉</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="academy" class="page">
+        <h3 style="color: var(--gold); text-align: center;">أكاديمية الحرية 🎓</h3>
+        <div class="lesson-card">
+            <div class="lesson-status">الدرس 1: قانون الندرة</div>
+            <div style="font-size: 14px;">لماذا $LAST؟ لأننا سنصدر 100 ألف عملة فقط. عندما يقل العرض ويزيد الطلب، ينفجر السعر.</div>
+            <button class="claim-btn" onclick="claimLesson(10, this)">فهمت (اربح 10 $)</button>
+        </div>
+        <div class="lesson-card">
+            <div class="lesson-status">الدرس 2: التداول الذكي</div>
+            <div style="font-size: 14px;">الملك لا يبيع عند الهبوط، بل يشتري ليعزز عرشه. الصبر هو مفتاح الثروة.</div>
+            <button class="claim-btn" onclick="claimLesson(15, this)">فهمت (اربح 15 $)</button>
+        </div>
+    </div>
+
+    <div id="throne" class="page">
+        <div style="text-align: center; margin-top: 50px;">
+            <div style="width: 200px; height: 200px; margin: 0 auto; border-radius: 50%; border: 4px solid var(--gold); overflow: hidden; box-shadow: 0 0 30px var(--gold);" onclick="manualMine(event)">
+                <img src="1769632844655.png" style="width:100%; height:100%; object-fit:cover;">
+            </div>
+            <p>انقر لتعدين الذهب</p>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <div class="nav-item active" onclick="showPage('exchange')">📈<br>تداول</div>
+        <div class="nav-item" onclick="showPage('academy')">🎓<br>أكاديمية</div>
+        <div class="nav-item" onclick="showPage('throne')">🏛️<br>العرش</div>
+    </div>
+
+    <script>
+        let balance = 0;
+        let price = 1.00;
+
+        // تحديث السعر والشارت تلقائياً
+        setInterval(() => {
+            const change = (Math.random() * 0.1) - 0.04;
+            price += change;
+            if(price < 0.5) price = 0.5;
+            
+            document.getElementById('current-price').innerText = "$" + price.toFixed(3);
+            document.getElementById('current-price').style.color = change > 0 ? "var(--up)" : "var(--down)";
+            
+            const line = document.getElementById('chart-line');
+            line.style.bottom = (Math.random() * 60 + 20) + "%";
+            line.style.background = change > 0 ? "var(--up)" : "var(--down)";
+        }, 2000);
+
+        function showPage(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        function manualMine(e) {
+            balance += 0.05;
+            updateDisplay();
+        }
+
+        function predict(type) {
+            if(balance < 5) { alert("تحتاج لـ 5 $LAST على الأقل للتداول!"); return; }
+            balance -= 5;
+            alert("تم تسجيل توقعك! انتظر 5 ثوانٍ للنتيجة...");
+            
+            setTimeout(() => {
+                const win = Math.random() > 0.5;
+                if(win) {
+                    balance += 15;
+                    alert("نصر عظيم! ربحت 10 $LAST إضافية.");
+                } else {
+                    alert("السوق غدار.. حاول مرة أخرى يا ملك.");
+                }
+                updateDisplay();
+            }, 5000);
+        }
+
+        function claimLesson(reward, btn) {
+            balance += reward;
+            btn.innerText = "تم التعلم ✅";
+            btn.disabled = true;
+            btn.style.background = "#444";
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            document.getElementById('balance').innerText = balance.toFixed(2);
+        }
+    </script>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Last Million | البورصة والأكاديمية</title>
+    <style>
+        :root { --gold: #d4af37; --forest: #050a05; --up: #00ff88; --down: #ff4444; }
+        body { margin: 0; background: var(--forest); color: white; font-family: 'Cairo', sans-serif; overflow: hidden; }
+        .page { display: none; height: 100vh; padding: 15px; box-sizing: border-box; overflow-y: auto; padding-bottom: 100px; }
+        .page.active { display: block; }
+        
+        /* شريط الحالة العلوي */
+        .header-stats { background: rgba(0,0,0,0.9); padding: 10px; border-bottom: 2px solid var(--gold); display: flex; justify-content: space-around; font-size: 14px; position: sticky; top: 0; z-index: 100; }
+
+        /* الشارت الملكي */
+        .exchange-card { background: #111; border: 1px solid #333; border-radius: 15px; padding: 15px; margin-bottom: 20px; }
+        #chart-canvas { width: 100%; height: 150px; background: #0a0a0a; border-radius: 10px; position: relative; overflow: hidden; }
+        .chart-line { position: absolute; bottom: 50%; left: 0; width: 100%; height: 2px; background: var(--up); box-shadow: 0 0 10px var(--up); transition: 0.5s; }
+
+        /* أزرار التداول */
+        .trade-actions { display: flex; gap: 10px; margin-top: 15px; }
+        .trade-btn { flex: 1; border: none; padding: 12px; border-radius: 8px; font-weight: bold; color: white; cursor: pointer; }
+        .btn-up { background: var(--up); }
+        .btn-down { background: var(--down); }
+
+        /* الأكاديمية */
+        .lesson-card { background: #1a1a1a; border-radius: 12px; padding: 15px; margin-bottom: 15px; border-left: 4px solid var(--gold); }
+        .lesson-status { font-size: 12px; color: var(--gold); margin-bottom: 5px; }
+        .claim-btn { background: var(--gold); border: none; padding: 5px 15px; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+
+        /* الملاحة السفلى */
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid var(--gold); z-index: 1000; }
+        .nav-item { font-size: 11px; color: #555; text-align: center; flex: 1; cursor: pointer; }
+        .nav-item.active { color: var(--gold); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="header-stats">
+        <div>💰 $LAST: <span id="balance">0.00</span></div>
+        <div>📈 السعر: <span id="current-price" style="color:var(--up)">$1.00</span></div>
+    </div>
+
+    <div id="exchange" class="page active">
+        <h3 style="color: var(--gold); text-align: center;">البورصة الملكية 📈</h3>
+        <div class="exchange-card">
+            <div id="chart-canvas">
+                <div id="chart-line" class="chart-line"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px;">
+                <span>24h High: $1.70</span>
+                <span>24h Low: $0.95</span>
+            </div>
+        </div>
+        
+        <div style="text-align: center; padding: 10px;">
+            <p style="font-size: 14px;">توقع اتجاه السعر واربح الضعف!</p>
+            <div class="trade-actions">
+                <button class="trade-btn btn-up" onclick="predict('up')">صعود 📈</button>
+                <button class="trade-btn btn-down" onclick="predict('down')">هبوط 📉</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="academy" class="page">
+        <h3 style="color: var(--gold); text-align: center;">أكاديمية الحرية 🎓</h3>
+        <div class="lesson-card">
+            <div class="lesson-status">الدرس 1: قانون الندرة</div>
+            <div style="font-size: 14px;">لماذا $LAST؟ لأننا سنصدر 100 ألف عملة فقط. عندما يقل العرض ويزيد الطلب، ينفجر السعر.</div>
+            <button class="claim-btn" onclick="claimLesson(10, this)">فهمت (اربح 10 $)</button>
+        </div>
+        <div class="lesson-card">
+            <div class="lesson-status">الدرس 2: التداول الذكي</div>
+            <div style="font-size: 14px;">الملك لا يبيع عند الهبوط، بل يشتري ليعزز عرشه. الصبر هو مفتاح الثروة.</div>
+            <button class="claim-btn" onclick="claimLesson(15, this)">فهمت (اربح 15 $)</button>
+        </div>
+    </div>
+
+    <div id="throne" class="page">
+        <div style="text-align: center; margin-top: 50px;">
+            <div style="width: 200px; height: 200px; margin: 0 auto; border-radius: 50%; border: 4px solid var(--gold); overflow: hidden; box-shadow: 0 0 30px var(--gold);" onclick="manualMine(event)">
+                <img src="1769632844655.png" style="width:100%; height:100%; object-fit:cover;">
+            </div>
+            <p>انقر لتعدين الذهب</p>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <div class="nav-item active" onclick="showPage('exchange')">📈<br>تداول</div>
+        <div class="nav-item" onclick="showPage('academy')">🎓<br>أكاديمية</div>
+        <div class="nav-item" onclick="showPage('throne')">🏛️<br>العرش</div>
+    </div>
+
+    <script>
+        let balance = 0;
+        let price = 1.00;
+
+        // تحديث السعر والشارت تلقائياً
+        setInterval(() => {
+            const change = (Math.random() * 0.1) - 0.04;
+            price += change;
+            if(price < 0.5) price = 0.5;
+            
+            document.getElementById('current-price').innerText = "$" + price.toFixed(3);
+            document.getElementById('current-price').style.color = change > 0 ? "var(--up)" : "var(--down)";
+            
+            const line = document.getElementById('chart-line');
+            line.style.bottom = (Math.random() * 60 + 20) + "%";
+            line.style.background = change > 0 ? "var(--up)" : "var(--down)";
+        }, 2000);
+
+        function showPage(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        function manualMine(e) {
+            balance += 0.05;
+            updateDisplay();
+        }
+
+        function predict(type) {
+            if(balance < 5) { alert("تحتاج لـ 5 $LAST على الأقل للتداول!"); return; }
+            balance -= 5;
+            alert("تم تسجيل توقعك! انتظر 5 ثوانٍ للنتيجة...");
+            
+            setTimeout(() => {
+                const win = Math.random() > 0.5;
+                if(win) {
+                    balance += 15;
+                    alert("نصر عظيم! ربحت 10 $LAST إضافية.");
+                } else {
+                    alert("السوق غدار.. حاول مرة أخرى يا ملك.");
+                }
+                updateDisplay();
+            }, 5000);
+        }
+
+        function claimLesson(reward, btn) {
+            balance += reward;
+            btn.innerText = "تم التعلم ✅";
+            btn.disabled = true;
+            btn.style.background = "#444";
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            document.getElementById('balance').innerText = balance.toFixed(2);
+        }
+    </script>
+</body>
+</html>
