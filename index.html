@@ -147,3 +147,446 @@
     </script>
 </body>
 </html>
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Last Million | البورصة والأكاديمية</title>
+    <style>
+        :root { --gold: #d4af37; --forest: #050a05; --up: #00ff88; --down: #ff4444; }
+        body { margin: 0; background: var(--forest); color: white; font-family: 'Cairo', sans-serif; overflow: hidden; }
+        .page { display: none; height: 100vh; padding: 15px; box-sizing: border-box; overflow-y: auto; padding-bottom: 100px; }
+        .page.active { display: block; }
+        
+        /* شريط الحالة العلوي */
+        .header-stats { background: rgba(0,0,0,0.9); padding: 10px; border-bottom: 2px solid var(--gold); display: flex; justify-content: space-around; font-size: 14px; position: sticky; top: 0; z-index: 100; }
+
+        /* الشارت الملكي */
+        .exchange-card { background: #111; border: 1px solid #333; border-radius: 15px; padding: 15px; margin-bottom: 20px; }
+        #chart-canvas { width: 100%; height: 150px; background: #0a0a0a; border-radius: 10px; position: relative; overflow: hidden; }
+        .chart-line { position: absolute; bottom: 50%; left: 0; width: 100%; height: 2px; background: var(--up); box-shadow: 0 0 10px var(--up); transition: 0.5s; }
+
+        /* أزرار التداول */
+        .trade-actions { display: flex; gap: 10px; margin-top: 15px; }
+        .trade-btn { flex: 1; border: none; padding: 12px; border-radius: 8px; font-weight: bold; color: white; cursor: pointer; }
+        .btn-up { background: var(--up); }
+        .btn-down { background: var(--down); }
+
+        /* الأكاديمية */
+        .lesson-card { background: #1a1a1a; border-radius: 12px; padding: 15px; margin-bottom: 15px; border-left: 4px solid var(--gold); }
+        .lesson-status { font-size: 12px; color: var(--gold); margin-bottom: 5px; }
+        .claim-btn { background: var(--gold); border: none; padding: 5px 15px; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+
+        /* الملاحة السفلى */
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid var(--gold); z-index: 1000; }
+        .nav-item { font-size: 11px; color: #555; text-align: center; flex: 1; cursor: pointer; }
+        .nav-item.active { color: var(--gold); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="header-stats">
+        <div>💰 $LAST: <span id="balance">0.00</span></div>
+        <div>📈 السعر: <span id="current-price" style="color:var(--up)">$1.00</span></div>
+    </div>
+
+    <div id="exchange" class="page active">
+        <h3 style="color: var(--gold); text-align: center;">البورصة الملكية 📈</h3>
+        <div class="exchange-card">
+            <div id="chart-canvas">
+                <div id="chart-line" class="chart-line"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px;">
+                <span>24h High: $1.70</span>
+                <span>24h Low: $0.95</span>
+            </div>
+        </div>
+        
+        <div style="text-align: center; padding: 10px;">
+            <p style="font-size: 14px;">توقع اتجاه السعر واربح الضعف!</p>
+            <div class="trade-actions">
+                <button class="trade-btn btn-up" onclick="predict('up')">صعود 📈</button>
+                <button class="trade-btn btn-down" onclick="predict('down')">هبوط 📉</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="academy" class="page">
+        <h3 style="color: var(--gold); text-align: center;">أكاديمية الحرية 🎓</h3>
+        <div class="lesson-card">
+            <div class="lesson-status">الدرس 1: قانون الندرة</div>
+            <div style="font-size: 14px;">لماذا $LAST؟ لأننا سنصدر 100 ألف عملة فقط. عندما يقل العرض ويزيد الطلب، ينفجر السعر.</div>
+            <button class="claim-btn" onclick="claimLesson(10, this)">فهمت (اربح 10 $)</button>
+        </div>
+        <div class="lesson-card">
+            <div class="lesson-status">الدرس 2: التداول الذكي</div>
+            <div style="font-size: 14px;">الملك لا يبيع عند الهبوط، بل يشتري ليعزز عرشه. الصبر هو مفتاح الثروة.</div>
+            <button class="claim-btn" onclick="claimLesson(15, this)">فهمت (اربح 15 $)</button>
+        </div>
+    </div>
+
+    <div id="throne" class="page">
+        <div style="text-align: center; margin-top: 50px;">
+            <div style="width: 200px; height: 200px; margin: 0 auto; border-radius: 50%; border: 4px solid var(--gold); overflow: hidden; box-shadow: 0 0 30px var(--gold);" onclick="manualMine(event)">
+                <img src="1769632844655.png" style="width:100%; height:100%; object-fit:cover;">
+            </div>
+            <p>انقر لتعدين الذهب</p>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <div class="nav-item active" onclick="showPage('exchange')">📈<br>تداول</div>
+        <div class="nav-item" onclick="showPage('academy')">🎓<br>أكاديمية</div>
+        <div class="nav-item" onclick="showPage('throne')">🏛️<br>العرش</div>
+    </div>
+
+    <script>
+        let balance = 0;
+        let price = 1.00;
+
+        // تحديث السعر والشارت تلقائياً
+        setInterval(() => {
+            const change = (Math.random() * 0.1) - 0.04;
+            price += change;
+            if(price < 0.5) price = 0.5;
+            
+            document.getElementById('current-price').innerText = "$" + price.toFixed(3);
+            document.getElementById('current-price').style.color = change > 0 ? "var(--up)" : "var(--down)";
+            
+            const line = document.getElementById('chart-line');
+            line.style.bottom = (Math.random() * 60 + 20) + "%";
+            line.style.background = change > 0 ? "var(--up)" : "var(--down)";
+        }, 2000);
+
+        function showPage(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        function manualMine(e) {
+            balance += 0.05;
+            updateDisplay();
+        }
+
+        function predict(type) {
+            if(balance < 5) { alert("تحتاج لـ 5 $LAST على الأقل للتداول!"); return; }
+            balance -= 5;
+            alert("تم تسجيل توقعك! انتظر 5 ثوانٍ للنتيجة...");
+            
+            setTimeout(() => {
+                const win = Math.random() > 0.5;
+                if(win) {
+                    balance += 15;
+                    alert("نصر عظيم! ربحت 10 $LAST إضافية.");
+                } else {
+                    alert("السوق غدار.. حاول مرة أخرى يا ملك.");
+                }
+                updateDisplay();
+            }, 5000);
+        }
+
+        function claimLesson(reward, btn) {
+            balance += reward;
+            btn.innerText = "تم التعلم ✅";
+            btn.disabled = true;
+            btn.style.background = "#444";
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            document.getElementById('balance').innerText = balance.toFixed(2);
+        }
+    </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Last Million | المتجر الملكي</title>
+    <style>
+        :root { --gold: #d4af37; --forest: #050a05; --dark: #111; }
+        body { margin: 0; background: var(--forest); color: white; font-family: 'Cairo', sans-serif; overflow: hidden; }
+        .page { display: none; height: 100vh; padding: 20px; box-sizing: border-box; overflow-y: auto; padding-bottom: 100px; }
+        .page.active { display: block; }
+        
+        /* تصميم كروت المتجر */
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .shop-item { background: var(--dark); border: 1px solid var(--gold); border-radius: 15px; padding: 15px; text-align: center; position: relative; }
+        .shop-item img { width: 50px; margin-bottom: 10px; }
+        .price-tag { color: var(--gold); font-weight: bold; font-size: 14px; margin: 10px 0; }
+        .buy-btn { background: var(--gold); border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; }
+        .buy-btn:disabled { background: #444; color: #888; }
+
+        .header-stats { background: rgba(0,0,0,0.9); padding: 15px; border-bottom: 2px solid var(--gold); display: flex; justify-content: space-around; position: sticky; top: 0; z-index: 100; }
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid var(--gold); z-index: 1000; }
+        .nav-item { font-size: 12px; color: #555; text-align: center; flex: 1; cursor: pointer; }
+        .nav-item.active { color: var(--gold); }
+        
+        /* رسائل التنبيه */
+        #event-msg { position: fixed; top: 80px; width: 100%; text-align: center; font-weight: bold; z-index: 4000; display: none; padding: 10px; background: rgba(0,0,0,0.8); }
+    </style>
+</head>
+<body>
+
+    <div id="event-msg"></div>
+
+    <div class="header-stats">
+        <div>💰 $LAST: <span id="balance">0.00</span></div>
+        <div>✨ غبار: <span id="dust">0</span></div>
+    </div>
+
+    <div id="throne" class="page active">
+        <div style="text-align: center; margin-top: 40px;">
+            <div id="multiplier-tag" style="color: var(--gold); font-weight: bold; visibility: hidden;">مضاعف القوة نشط! 🔥</div>
+            <div style="width: 180px; height: 180px; margin: 20px auto; border-radius: 50%; border: 4px solid var(--gold); box-shadow: 0 0 20px var(--gold); overflow: hidden;" onclick="manualMine(event)">
+                <img src="1769632844655.png" style="width:100%; height:100%; object-fit:cover;">
+            </div>
+            <p id="auto-mining-text" style="color: #0f0; font-size: 14px;">التعدين التلقائي: 0.1/ث</p>
+        </div>
+    </div>
+
+    <div id="shop" class="page">
+        <h2 style="color: var(--gold); text-align: center;">متجر العرين 🛒</h2>
+        <div class="shop-grid">
+            <div class="shop-item">
+                <div>🛡️</div>
+                <div style="font-size: 14px;">سياج الضباع</div>
+                <div class="price-tag">50 غبار</div>
+                <button class="buy-btn" onclick="buyItem('fence', 50, 'dust')">شراء</button>
+            </div>
+            <div class="shop-item">
+                <div>⚡</div>
+                <div style="font-size: 14px;">مخالب ذهبية</div>
+                <div class="price-tag">100 $LAST</div>
+                <button class="buy-btn" onclick="buyItem('claws', 100, 'last')">شراء</button>
+            </div>
+            <div class="shop-item">
+                <div>🔭</div>
+                <div style="font-size: 14px;">عدسة الخسوف</div>
+                <div class="price-tag">30 غبار</div>
+                <button class="buy-btn" onclick="buyItem('lens', 30, 'dust')">شراء</button>
+            </div>
+            <div class="shop-item">
+                <div>🍖</div>
+                <div style="font-size: 14px;">طعم صيد</div>
+                <div class="price-tag">20 $LAST</div>
+                <button class="buy-btn" onclick="buyItem('bait', 20, 'last')">شراء</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <div class="nav-item active" onclick="showPage('throne')">🏛️<br>العرش</div>
+        <div class="nav-item" onclick="showPage('shop')">🛒<br>المتجر</div>
+        <div class="nav-item">📈<br>تداول</div>
+    </div>
+
+    <script>
+        let balance = 0;
+        let dust = 0;
+        let autoRate = 0.1;
+        let multiplier = 1;
+        let hasFence = false;
+
+        // التعدين التلقائي
+        setInterval(() => {
+            balance += (autoRate * multiplier);
+            updateDisplay();
+        }, 1000);
+
+        function updateDisplay() {
+            document.getElementById('balance').innerText = balance.toFixed(2);
+            document.getElementById('dust').innerText = dust;
+        }
+
+        function manualMine(e) {
+            balance += (0.05 * multiplier);
+            updateDisplay();
+            createEffect(e.pageX, e.pageY, "+" + (0.05 * multiplier).toFixed(2), "var(--gold)");
+        }
+
+        function showPage(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        function buyItem(item, price, type) {
+            if (type === 'dust' && dust >= price) {
+                dust -= price;
+                applyItem(item);
+            } else if (type === 'last' && balance >= price) {
+                balance -= price;
+                applyItem(item);
+            } else {
+                alert("لا تملك الموارد الكافية في خزانتك!");
+            }
+            updateDisplay();
+        }
+
+        function applyItem(item) {
+            if (item === 'fence') { hasFence = true; alert("تم تركيب السياج! الضباع لن تسرقك الآن."); }
+            if (item === 'claws') { autoRate += 0.2; alert("تطورت المخالب! زادت سرعة التعدين."); }
+            if (item === 'lens') { alert("العدسات جاهزة! الخسوف القادم سيدوم أطول."); }
+            document.getElementById('auto-mining-text').innerText = `التعدين التلقائي: ${autoRate.toFixed(1)}/ث`;
+        }
+
+        function createEffect(x, y, text, color) {
+            const el = document.createElement('div');
+            el.innerText = text; el.style.position = 'absolute'; el.style.left = x+'px'; el.style.top = y+'px';
+            el.style.color = color; el.style.fontWeight = 'bold'; el.style.pointerEvents = 'none';
+            document.body.appendChild(el);
+            el.animate([{opacity: 1, transform: 'translateY(0)'}, {opacity: 0, transform: 'translateY(-100px)'}], 1000).onfinish = () => el.remove();
+        }
+    </script>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Last Million | الأحداث الملكية</title>
+    <style>
+        :root { --gold: #d4af37; --forest: #050a05; --eclipse: #2d1b00; }
+        body { margin: 0; background: var(--forest); color: white; font-family: 'Cairo', sans-serif; overflow: hidden; transition: background 1s; }
+        .page { display: none; height: 100vh; padding: 20px; box-sizing: border-box; }
+        .page.active { display: block; }
+        .header-stats { background: rgba(0,0,0,0.9); padding: 15px; border-bottom: 2px solid var(--gold); display: flex; justify-content: space-around; }
+
+        /* تأثير الخسوف */
+        body.eclipse-active { background: var(--eclipse) !important; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: inset 0 0 100px #000; } 50% { box-shadow: inset 0 0 200px var(--gold); } 100% { box-shadow: inset 0 0 100px #000; } }
+
+        /* الضباع */
+        .hyena { position: absolute; font-size: 50px; z-index: 3000; cursor: pointer; transition: 0.3s; animation: shake 0.5s infinite; }
+        @keyframes shake { 0% { transform: rotate(0); } 25% { transform: rotate(10deg); } 75% { transform: rotate(-10deg); } }
+
+        .lion-box { width: 180px; height: 180px; margin: 40px auto; border-radius: 50%; border: 4px solid var(--gold); position: relative; }
+        .lion-box img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid var(--gold); }
+        .nav-item { font-size: 12px; color: #555; text-align: center; }
+        .nav-item.active { color: var(--gold); }
+        
+        #event-msg { position: fixed; top: 80px; width: 100%; text-align: center; font-weight: bold; font-size: 20px; z-index: 4000; display: none; }
+    </style>
+</head>
+<body id="main-body">
+
+    <div id="event-msg"></div>
+
+    <div class="header-stats">
+        <div>💰 $LAST: <span id="balance">0.00</span></div>
+        <div>✨ غبار: <span id="dust">0</span></div>
+    </div>
+
+    <div id="throne" class="page active" style="text-align: center;">
+        <div id="multiplier-tag" style="color: var(--gold); font-weight: bold; visibility: hidden;">مضاعف القوة: x10 🔥</div>
+        <div class="lion-box" onclick="manualMine(event)">
+            <img src="1769632844655.png" alt="Lion">
+        </div>
+        <p id="status-text">التعدين التلقائي نشط...</p>
+    </div>
+
+    <div class="nav-bar">
+        <div class="nav-item active">🏛️<br>العرش</div>
+        <div class="nav-item">🏹<br>الصيد</div>
+        <div class="nav-item">📈<br>تداول</div>
+    </div>
+
+    <script>
+        let balance = 0;
+        let dust = 0;
+        let multiplier = 1;
+        let autoRate = 0.1;
+
+        // نظام التعدين التلقائي
+        setInterval(() => {
+            balance += (autoRate * multiplier);
+            document.getElementById('balance').innerText = balance.toFixed(2);
+        }, 1000);
+
+        function manualMine(e) {
+            balance += (0.05 * multiplier);
+            document.getElementById('balance').innerText = balance.toFixed(2);
+            createEffect(e.pageX, e.pageY, "+" + (0.05 * multiplier).toFixed(2), multiplier > 1 ? "#fff" : "var(--gold)");
+        }
+
+        // --- محرك الأحداث العشوائية ---
+        setInterval(() => {
+            let dice = Math.random();
+            if (dice < 0.05) triggerEclipse(); // 5% احتمالية خسوف
+            else if (dice < 0.15) triggerHyenaRaid(); // 10% احتمالية هجوم ضباع
+        }, 20000); // يفحص كل 20 ثانية
+
+        function triggerEclipse() {
+            multiplier = 10;
+            const body = document.getElementById('main-body');
+            const msg = document.getElementById('event-msg');
+            body.classList.add('eclipse-active');
+            msg.innerText = "⚠️ خسوف ذهبي! طاقة x10 بدأت الآن!";
+            msg.style.display = 'block';
+            msg.style.color = "var(--gold)";
+            document.getElementById('multiplier-tag').style.visibility = 'visible';
+
+            setTimeout(() => {
+                multiplier = 1;
+                body.classList.remove('eclipse-active');
+                msg.style.display = 'none';
+                document.getElementById('multiplier-tag').style.visibility = 'hidden';
+            }, 15000); // يستمر 15 ثانية
+        }
+
+        function triggerHyenaRaid() {
+            const msg = document.getElementById('event-msg');
+            msg.innerText = "🐺 هجوم ضباع! اطرد الغزاة من العرين!";
+            msg.style.display = 'block';
+            msg.style.color = "red";
+
+            let hyena = document.createElement('div');
+            hyena.className = 'hyena';
+            hyena.innerText = "🐺";
+            hyena.style.left = Math.random() * 80 + "%";
+            hyena.style.top = Math.random() * 80 + "%";
+            
+            let escaped = true;
+            hyena.onclick = () => {
+                escaped = false;
+                hyena.remove();
+                msg.innerText = "✅ تم سحق الضبع! العرين في أمان.";
+                setTimeout(() => msg.style.display = 'none', 2000);
+            };
+
+            document.body.appendChild(hyena);
+
+            setTimeout(() => {
+                if(escaped) {
+                    balance -= 2; // سرقة رصيد
+                    if(balance < 0) balance = 0;
+                    document.getElementById('balance').innerText = balance.toFixed(2);
+                    msg.innerText = "❌ الضباع سرقت 2.00 $LAST!";
+                    hyena.remove();
+                    setTimeout(() => msg.style.display = 'none', 3000);
+                }
+            }, 7000); // لديك 7 ثواني للضغط
+        }
+
+        function createEffect(x, y, text, color) {
+            const el = document.createElement('div');
+            el.innerText = text; el.style.position = 'absolute'; el.style.left = x+'px'; el.style.top = y+'px';
+            el.style.color = color; el.style.fontWeight = 'bold'; el.style.pointerEvents = 'none'; el.style.zIndex = "5000";
+            document.body.appendChild(el);
+            el.animate([{opacity: 1, transform: 'translateY(0)'}, {opacity: 0, transform: 'translateY(-150px)'}], 1000).onfinish = () => el.remove();
+        }
+    </script>
+</body>
+</html>
