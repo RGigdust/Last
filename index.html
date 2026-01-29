@@ -3,79 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>The Last Million | العرين المتكامل</title>
+    <title>The Last Million | العرين الأسطوري</title>
     <style>
-        :root { --gold: #d4af37; --forest: #050a05; --dark: #000; }
-        body { margin: 0; background: var(--forest); color: white; font-family: 'Cairo', sans-serif; overflow: hidden; }
+        :root { --gold: #d4af37; --forest: #050a05; --up: #00ff88; --down: #ff4444; }
+        body { margin: 0; background: var(--forest); color: white; font-family: 'Cairo', sans-serif; overflow: hidden; transition: background 0.5s; }
         .page { display: none; height: 100vh; padding: 15px; box-sizing: border-box; overflow-y: auto; padding-bottom: 100px; }
         .page.active { display: block; }
         
-        .header-stats { background: rgba(0,0,0,0.9); padding: 10px; border-bottom: 2px solid var(--gold); display: flex; justify-content: space-around; position: sticky; top: 0; z-index: 100; }
+        /* شريط الحالة */
+        .header-stats { background: rgba(0,0,0,0.9); padding: 10px; border-bottom: 2px solid var(--gold); display: flex; justify-content: space-around; font-size: 14px; position: sticky; top: 0; z-index: 1000; }
 
-        /* الأسد والطاقة */
-        .lion-box { width: 180px; height: 180px; margin: 20px auto; border-radius: 50%; border: 4px solid var(--gold); box-shadow: 0 0 20px var(--gold); overflow: hidden; }
-        .energy-bar-bg { width: 80%; height: 10px; background: #222; margin: 10px auto; border-radius: 5px; overflow: hidden; }
+        /* العرش والطاقة */
+        .lion-box { width: 180px; height: 180px; margin: 20px auto; border-radius: 50%; border: 4px solid var(--gold); box-shadow: 0 0 20px var(--gold); overflow: hidden; position: relative; }
+        .energy-bar { width: 80%; height: 8px; background: #222; margin: 10px auto; border-radius: 4px; overflow: hidden; }
         #energy-fill { width: 100%; height: 100%; background: var(--gold); transition: 0.3s; }
 
-        /* الصيد */
-        #forest-area { height: 60vh; position: relative; background: rgba(0,20,0,0.3); border-radius: 15px; border: 1px dashed var(--gold); }
-        .target { position: absolute; font-size: 30px; cursor: pointer; }
+        /* الأحداث (الضباع والخسوف) */
+        .hyena { position: fixed; font-size: 50px; z-index: 5000; cursor: pointer; animation: move 2s infinite alternate; }
+        @keyframes move { from { transform: translateX(0); } to { transform: translateX(20px); } }
+        body.eclipse { background: #2d1b00 !important; animation: pulse 2s infinite; }
+        @keyframes pulse { 50% { box-shadow: inset 0 0 100px var(--gold); } }
 
-        /* الأكاديمية والمتجر */
-        .item-card { background: #111; border: 1px solid #333; border-radius: 12px; padding: 15px; margin-bottom: 10px; border-right: 4px solid var(--gold); }
-        .btn-action { background: var(--gold); border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; }
-
-        /* التنقل */
+        /* الأزرار والتنقل */
+        .btn-action { background: var(--gold); border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
         .nav-bar { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid var(--gold); z-index: 1000; }
         .nav-item { font-size: 11px; color: #555; text-align: center; flex: 1; cursor: pointer; }
         .nav-item.active { color: var(--gold); }
+
+        .item-card { background: #111; border: 1px solid #333; border-radius: 12px; padding: 15px; margin-bottom: 10px; border-right: 4px solid var(--gold); }
     </style>
 </head>
-<body>
+<body id="main-body">
+
+    <div id="event-alert" style="position:fixed; top:60px; width:100%; text-align:center; z-index:6000; font-weight:bold; display:none; background:rgba(0,0,0,0.8); padding:10px;"></div>
 
     <div class="header-stats">
         <div>💰 $LAST: <span id="balance">0.00</span></div>
         <div>✨ غبار: <span id="dust">0</span></div>
+        <div id="price-display" style="color:var(--up)">$1.00</div>
     </div>
 
     <div id="throne-page" class="page active">
         <div style="text-align: center;">
+            <div id="mult-tag" style="color:var(--gold); visibility:hidden;">طاقة الخسوف x10 🔥</div>
             <div class="lion-box" onclick="manualMine(event)">
                 <img src="1769632844655.png" style="width:100%; height:100%; object-fit:cover;">
             </div>
-            <div class="energy-bar-bg"><div id="energy-fill"></div></div>
-            <small id="energy-text">الطاقة: 100% (التعدين التلقائي نشط)</small>
-            <p style="margin-top: 20px; font-size: 14px; color: #888;">مستوى Pepe (قيد التطور)</p>
+            <div class="energy-bar"><div id="energy-fill"></div></div>
+            <small id="energy-text">الطاقة: 100%</small>
+            <p style="font-size:12px; color:#666; margin-top:20px;">انقر لشحن الطاقة والتعدين اليدوي</p>
         </div>
     </div>
 
     <div id="hunt-page" class="page">
-        <h3 style="color: var(--gold); text-align: center;">موسم الصيد 🏹</h3>
-        <div id="forest-area"></div>
+        <h3 style="color:var(--gold); text-align:center;">موسم الصيد 🏹</h3>
+        <div id="forest-area" style="height:60vh; border:1px dashed #333; position:relative;"></div>
     </div>
 
     <div id="trade-page" class="page">
-        <h3 style="color: var(--gold); text-align: center;">البورصة الملكية 📈</h3>
-        <div style="background: #111; height: 100px; border-radius: 10px; margin-bottom: 20px; border: 1px solid var(--gold); position: relative;">
-            <div id="chart-line" style="position:absolute; bottom:50%; width:100%; height:2px; background:var(--gold);"></div>
+        <h3 style="color:var(--gold); text-align:center;">البورصة 📈</h3>
+        <div style="background:#111; height:120px; border:1px solid #333; margin-bottom:20px; position:relative; overflow:hidden;">
+            <div id="chart-line" style="position:absolute; bottom:50%; width:100%; height:2px; background:var(--up); transition:0.5s;"></div>
         </div>
-        <button class="btn-action" style="width:100%; margin-bottom: 10px; background:#00ff88;">صعود 📈</button>
-        <button class="btn-action" style="width:100%; background:#ff4444;">هبوط 📉</button>
+        <button class="btn-action" style="background:var(--up)" onclick="trade('up')">توقع صعود</button>
+        <button class="btn-action" style="background:var(--down)" onclick="trade('down')">توقع هبوط</button>
     </div>
 
-    <div id="academy-page" class="page">
-        <h3 style="color: var(--gold); text-align: center;">أكاديمية الحرية 🎓</h3>
+    <div id="extra-page" class="page">
         <div class="item-card">
-            <div>قانون الندرة: لماذا نعدن 100 ألف فقط؟</div>
-            <button class="btn-action" onclick="claim(10, this)">تعلم واربح 10$</button>
+            <div style="color:var(--gold)">🎓 أكاديمية الحرية</div>
+            <p style="font-size:12px;">تعلم كيف تجعل $LAST تتخطى الـ $1.</p>
+            <button class="btn-action" onclick="this.innerText='تم ✅'; balance+=10; updateUI();">اربح 10 $</button>
         </div>
-    </div>
-
-    <div id="shop-page" class="page">
-        <h3 style="color: var(--gold); text-align: center;">متجر العرين 🛒</h3>
         <div class="item-card">
-            <div>مخالب ذهبية (تسرع التعدين)</div>
-            <button class="btn-action">50 غبار ✨</button>
+            <div style="color:var(--gold)">🛒 متجر العرين</div>
+            <p style="font-size:12px;">سياج حماية ضد الضباع</p>
+            <button class="btn-action" onclick="buyFence()">شراء بـ 30 غبار</button>
         </div>
     </div>
 
@@ -83,38 +86,72 @@
         <div class="nav-item active" onclick="showPage('throne-page')">🏛️<br>العرش</div>
         <div class="nav-item" onclick="showPage('hunt-page'); startHunt();">🏹<br>الصيد</div>
         <div class="nav-item" onclick="showPage('trade-page')">📈<br>تداول</div>
-        <div class="nav-item" onclick="showPage('academy-page')">🎓<br>أكاديمية</div>
-        <div class="nav-item" onclick="showPage('shop-page')">🛒<br>المتجر</div>
+        <div class="nav-item" onclick="showPage('extra-page')">🏰<br>المزيد</div>
     </div>
 
     <script>
-        let balance = 0;
-        let dust = 0;
-        let energy = 100;
-        let huntActive = false;
+        let balance = 0, dust = 0, energy = 100, multiplier = 1, hasFence = false, huntActive = false;
 
-        // التعدين التلقائي مع استهلاك الطاقة
+        // التعدين التلقائي
         setInterval(() => {
-            if (energy > 0) {
-                balance += 0.01;
-                energy -= 0.1; // استهلاك الطاقة
+            if(energy > 0) {
+                balance += (0.01 * multiplier);
+                energy -= 0.1;
                 updateUI();
-            } else {
-                document.getElementById('energy-text').innerText = "نفدت الطاقة! اضغط على الأسد للشحن";
-                document.getElementById('energy-text').style.color = "red";
             }
         }, 1000);
 
-        function updateUI() {
-            document.getElementById('balance').innerText = balance.toFixed(2);
-            document.getElementById('dust').innerText = dust;
-            document.getElementById('energy-fill').style.width = energy + "%";
+        // محرك الأحداث العشوائية (كل 30 ثانية)
+        setInterval(() => {
+            let r = Math.random();
+            if(r < 0.1) triggerEclipse();
+            else if(r < 0.25) triggerHyena();
+        }, 30000);
+
+        function triggerEclipse() {
+            multiplier = 10;
+            document.body.classList.add('eclipse');
+            document.getElementById('mult-tag').style.visibility = 'visible';
+            alertMsg("⚠️ خسوف ذهبي! الأرباح x10!", "var(--gold)");
+            setTimeout(() => {
+                multiplier = 1;
+                document.body.classList.remove('eclipse');
+                document.getElementById('mult-tag').style.visibility = 'hidden';
+            }, 15000);
+        }
+
+        function triggerHyena() {
+            if(hasFence) { alertMsg("🛡️ السياج طرد الضباع تلقائياً!", "var(--up)"); return; }
+            alertMsg("🐺 هجوم ضباع! اضغط عليه بسرعة!", "red");
+            let h = document.createElement('div');
+            h.className = 'hyena'; h.innerText = "🐺";
+            h.style.left = Math.random()*80+"%"; h.style.top = Math.random()*80+"%";
+            document.body.appendChild(h);
+            let caught = false;
+            h.onclick = () => { caught = true; h.remove(); alertMsg("✅ تم سحق الضبع!", "var(--up)"); };
+            setTimeout(() => { if(!caught) { balance -= 2; h.remove(); alertMsg("❌ الضبع سرق 2 $LAST", "red"); updateUI(); } }, 5000);
         }
 
         function manualMine(e) {
-            balance += 0.05;
-            if(energy < 100) energy += 1; // شحن الطاقة عند النقر
+            balance += (0.05 * multiplier);
+            if(energy < 100) energy += 2;
             updateUI();
+            createEffect(e.pageX, e.pageY, "+"+(0.05*multiplier).toFixed(2), "var(--gold)");
+        }
+
+        function startHunt() {
+            const area = document.getElementById('forest-area');
+            if(area.childElementCount > 0) return;
+            setInterval(() => {
+                if(huntActive) {
+                    let d = document.createElement('div');
+                    d.innerText = "🦌"; d.style.position="absolute";
+                    d.style.left=Math.random()*90+"%"; d.style.top=Math.random()*90+"%";
+                    d.onclick = () => { dust += 1; updateUI(); d.remove(); };
+                    area.appendChild(d);
+                    setTimeout(() => d.remove(), 2000);
+                }
+            }, 2000);
         }
 
         function showPage(id) {
@@ -125,24 +162,28 @@
             huntActive = (id === 'hunt-page');
         }
 
-        function startHunt() {
-            const area = document.getElementById('forest-area');
-            if(area.innerHTML !== "") return;
-            setInterval(() => {
-                if(huntActive) {
-                    const t = document.createElement('div');
-                    t.className = 'target';
-                    t.innerText = "🦌";
-                    t.style.left = Math.random()*80 + "%"; t.style.top = Math.random()*80 + "%";
-                    t.onclick = () => { dust += 1; updateUI(); t.remove(); };
-                    area.appendChild(t);
-                    setTimeout(() => t.remove(), 2000);
-                }
-            }, 2000);
+        function buyFence() {
+            if(dust >= 30) { dust -= 30; hasFence = true; alert("تم تأمين العرين بالسياج!"); updateUI(); }
+            else alert("تحتاج لغبار أكثر!");
         }
 
-        function claim(r, btn) {
-            balance += r; btn.innerText = "تم ✅"; btn.disabled = true; updateUI();
+        function updateUI() {
+            document.getElementById('balance').innerText = balance.toFixed(2);
+            document.getElementById('dust').innerText = dust;
+            document.getElementById('energy-fill').style.width = energy + "%";
+        }
+
+        function alertMsg(m, c) {
+            let a = document.getElementById('event-alert');
+            a.innerText = m; a.style.color = c; a.style.display = 'block';
+            setTimeout(() => a.style.display = 'none', 3000);
+        }
+
+        function createEffect(x, y, t, c) {
+            let e = document.createElement('div');
+            e.innerText = t; e.style.position='fixed'; e.style.left=x+'px'; e.style.top=y+'px'; e.style.color=c;
+            document.body.appendChild(e);
+            e.animate([{opacity:1, transform:'translateY(0)'}, {opacity:0, transform:'translateY(-100px)'}], 1000).onfinish=()=>e.remove();
         }
     </script>
 </body>
