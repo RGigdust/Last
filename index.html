@@ -3,133 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>The Last Million | إمبراطورية الأحرار</title>
+    <title>The Last Million | غابة الصيد</title>
     <style>
-        :root { --gold: #d4af37; --forest: #0a0f0a; --lion-red: #8b0000; }
-        body { margin: 0; background: var(--forest); color: white; font-family: 'Cairo', sans-serif; overflow-x: hidden; }
+        :root { --gold: #d4af37; --forest: #050a05; --dust-color: #a8e6cf; }
+        body { margin: 0; background: var(--forest); color: white; font-family: 'Cairo', sans-serif; overflow: hidden; touch-action: manipulation; }
         
         /* شاشة الافتتاحية */
-        #intro-screen {
-            position: fixed; inset: 0; background: black; z-index: 2000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; transition: 1s;
-        }
-        .quote { font-style: italic; color: var(--gold); font-size: 20px; padding: 20px; opacity: 0; animation: fadeIn 3s forwards; }
+        #intro-screen { position: fixed; inset: 0; background: black; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .quote { font-style: italic; color: var(--gold); font-size: 18px; padding: 20px; animation: fadeIn 2s forwards; }
 
-        /* شريط التنقل السفلي */
+        /* الهيكل العام */
+        .page { display: none; height: 100vh; padding-top: 20px; }
+        .page.active { display: block; }
+
+        /* واجهة الصيد */
+        #hunting-page { background: radial-gradient(circle, #0a1a0a 0%, #050a05 100%); position: relative; }
+        .forest-target {
+            position: absolute; font-size: 40px; cursor: pointer;
+            filter: drop-shadow(0 0 10px var(--gold));
+            transition: transform 0.2s; z-index: 100;
+        }
+        .forest-target:active { transform: scale(1.5); }
+
+        /* شريط المعلومات */
+        .status-bar { background: rgba(0,0,0,0.8); padding: 10px; border-bottom: 1px solid var(--gold); display: flex; justify-content: space-around; }
+        
+        /* أزرار التحكم السفلى */
         .nav-bar {
-            position: fixed; bottom: 0; width: 100%; background: rgba(0,0,0,0.9);
-            display: flex; justify-content: space-around; padding: 10px 0; border-top: 2px solid var(--gold); z-index: 1000;
+            position: fixed; bottom: 0; width: 100%; background: #000;
+            display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid var(--gold);
         }
-        .nav-item { font-size: 12px; color: #888; text-align: center; }
-        .nav-item.active { color: var(--gold); }
-
-        /* الشاشة الرئيسية */
-        .header { padding: 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(212,175,55,0.1); }
-        .rank-box { display: flex; align-items: center; gap: 10px; }
-        .rank-icon { font-size: 24px; }
-
-        .mining-area { text-align: center; margin-top: 30px; }
-        .lion-circle {
-            width: 220px; height: 220px; margin: 0 auto; border-radius: 50%;
-            border: 5px solid var(--gold); position: relative; overflow: hidden;
-            box-shadow: 0 0 30px var(--gold); transition: 0.1s;
-        }
-        .lion-circle:active { transform: scale(0.95); }
-        .lion-img { width: 100%; height: 100%; object-fit: cover; }
-
-        /* شارت التداول */
-        .chart-sim { height: 100px; background: #111; margin: 15px; border-radius: 10px; border: 1px solid #333; position: relative; overflow: hidden; }
-        .line { position: absolute; bottom: 20px; left: 0; width: 100%; height: 2px; background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+        .nav-item { font-size: 12px; color: #555; cursor: pointer; text-align: center; flex: 1; }
+        .nav-item.active { color: var(--gold); font-weight: bold; }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .hidden { display: none !important; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-    <div id="intro-screen">
+    <div id="intro-screen" onclick="this.style.display='none'; showPage('main-page')">
         <div class="quote">
             "طالما اختاروا قانون الغاب.. اختار ساعتها تكون ملك بمخلب وناب"<br>
-            <small style="color: #666; margin-top: 10px; display: block;">جاري فتح العرين...</small>
+            <span style="font-size: 14px; color: #555;">(اضغط للعبور)</span>
         </div>
-        <button id="enter-btn" class="hidden" onclick="showGate()" style="margin-top: 20px; background: var(--gold); border: none; padding: 10px 20px; border-radius: 5px;">تقدم يا ملك</button>
     </div>
 
-    <div id="app" class="hidden">
-        <div class="header">
-            <div class="rank-box">
-                <span class="rank-icon" id="rank-icon">🐾</span>
-                <div>
-                    <div id="rank-name" style="font-size: 12px; color: var(--gold);">شبل مبتدئ</div>
-                    <div style="font-size: 14px; font-weight: bold;">أحرار #1</div>
-                </div>
-            </div>
-            <button onclick="connectWallet()" style="background: #222; border: 1px solid var(--gold); color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px;">ربط المحفظة</button>
-        </div>
+    <div class="status-bar">
+        <div>💰 $LAST: <span id="balance-val">0</span></div>
+        <div>✨ غبار: <span id="dust-val">0</span></div>
+    </div>
 
-        <div style="padding: 0 20px; font-size: 12px; color: var(--gold);">شارت $LAST / USD</div>
-        <div class="chart-sim">
-            <div class="line" style="transform: skewY(-5deg);"></div>
-            <div style="position: absolute; right: 10px; top: 10px; color: #0f0;">+15.4%</div>
+    <div id="main-page" class="page active" style="text-align: center;">
+        <h2 style="color: var(--gold)">العرش الملكي</h2>
+        <div style="margin: 50px auto; width: 200px; height: 200px; border-radius: 50%; border: 4px solid var(--gold); overflow: hidden; box-shadow: 0 0 30px rgba(212,175,55,0.3);" onclick="mine(event)">
+            <img src="1769632844655.png" style="width: 100%; height: 100%; object-fit: cover;" alt="Lion">
         </div>
+        <p>اضغط لتوليد الطاقة</p>
+    </div>
 
-        <div class="mining-area">
-            <h1 style="color: var(--gold); margin: 0;" id="balance">0</h1>
-            <p style="font-size: 12px; color: #888;">مستوى Pepe (قيد التطور)</p>
-            
-            <div class="lion-circle" onclick="mine(event)">
-                <img src="1769632844655.png" class="lion-img" alt="Lion">
-            </div>
+    <div id="hunting-page" class="page">
+        <div style="text-align: center; padding: 10px;">
+            <h3 style="color: var(--gold); margin: 0;">موسم الصيد</h3>
+            <small>اصطد الغزلان الذهبية لجمع غبار الـ NFT</small>
         </div>
+        <div id="forest-area" style="height: 70vh; width: 100%; position: relative;"></div>
+    </div>
 
-        <div class="nav-bar">
-            <div class="nav-item active">🏛️<br>العرش</div>
-            <div class="nav-item">🏹<br>الصيد</div>
-            <div class="nav-item">📈<br>تداول</div>
-            <div class="nav-item">🎓<br>أكاديمية</div>
-            <div class="nav-item">🛒<br>المتجر</div>
-        </div>
+    <div class="nav-bar">
+        <div class="nav-item active" onclick="showPage('main-page')">🏛️<br>العرش</div>
+        <div id="hunt-nav" class="nav-item" onclick="showPage('hunting-page'); startHunting();">🏹<br>الصيد</div>
+        <div class="nav-item">📈<br>تداول</div>
+        <div class="nav-item">🛒<br>متجر</div>
     </div>
 
     <script>
         let balance = 0;
+        let dust = 0;
+        let huntInterval;
 
-        // إظهار زر الدخول بعد الاقتباس
-        setTimeout(() => { document.getElementById('enter-btn').classList.remove('hidden'); }, 3000);
-
-        function showGate() {
-            document.getElementById('intro-screen').classList.add('hidden');
-            document.getElementById('app').classList.remove('hidden');
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            event.currentTarget.classList.add('active');
+            
+            if (pageId !== 'hunting-page') clearInterval(huntInterval);
         }
 
         function mine(e) {
             balance += 0.01;
-            document.getElementById('balance').innerText = balance.toFixed(2);
-            updateRank();
-            
-            // إضافة غبار الذهب (بصرياً)
-            const dust = document.createElement('div');
-            dust.innerHTML = "✨";
-            dust.style.position = 'absolute';
-            dust.style.left = e.pageX + 'px';
-            dust.style.top = e.pageY + 'px';
-            dust.style.pointerEvents = 'none';
-            document.body.appendChild(dust);
-            
-            let anim = dust.animate([{ opacity: 1, transform: 'translateY(0)' }, { opacity: 0, transform: 'translateY(-100px)' }], 1000);
-            anim.onfinish = () => dust.remove();
+            document.getElementById('balance-val').innerText = balance.toFixed(2);
+            createEffect(e.pageX, e.pageY, "+0.01", "var(--gold)");
         }
 
-        function updateRank() {
-            const icon = document.getElementById('rank-icon');
-            const name = document.getElementById('rank-name');
-            if(balance > 10) { icon.innerText = "🦁"; name.innerText = "أسد العرين"; name.style.color = "#00ff00"; }
-            if(balance > 100) { icon.innerText = "👑"; name.innerText = "قائد الملحمة"; }
+        function startHunting() {
+            const area = document.getElementById('forest-area');
+            huntInterval = setInterval(() => {
+                const target = document.createElement('div');
+                target.className = 'forest-target';
+                target.innerHTML = Math.random() > 0.8 ? "🦌" : "✨";
+                target.style.left = Math.random() * 80 + 10 + "%";
+                target.style.top = Math.random() * 80 + 10 + "%";
+                
+                target.onclick = function() {
+                    dust += 1;
+                    document.getElementById('dust-val').innerText = dust;
+                    this.remove();
+                    createEffect(event.pageX, event.pageY, "+1 Dust", "var(--dust-color)");
+                };
+
+                area.appendChild(target);
+                setTimeout(() => { if(target) target.remove(); }, 2000);
+            }, 1500);
         }
 
-        function connectWallet() {
-            alert("سيتم ربط محفظة TON قريباً في تحديث الإدراج!");
+        function createEffect(x, y, text, color) {
+            const el = document.createElement('div');
+            el.innerText = text;
+            el.style.position = 'absolute';
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            el.style.color = color;
+            el.style.fontWeight = 'bold';
+            el.style.pointerEvents = 'none';
+            document.body.appendChild(el);
+            el.animate([{ opacity: 1, transform: 'translateY(0)' }, { opacity: 0, transform: 'translateY(-100px)' }], 1000)
+              .onfinish = () => el.remove();
         }
     </script>
 </body>
