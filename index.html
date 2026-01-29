@@ -3,133 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>The Last Million | غابة الصيد</title>
+    <title>The Last Million | الأحداث الملكية</title>
     <style>
-        :root { --gold: #d4af37; --forest: #050a05; --dust-color: #a8e6cf; }
-        body { margin: 0; background: var(--forest); color: white; font-family: 'Cairo', sans-serif; overflow: hidden; touch-action: manipulation; }
-        
-        /* شاشة الافتتاحية */
-        #intro-screen { position: fixed; inset: 0; background: black; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        .quote { font-style: italic; color: var(--gold); font-size: 18px; padding: 20px; animation: fadeIn 2s forwards; }
-
-        /* الهيكل العام */
-        .page { display: none; height: 100vh; padding-top: 20px; }
+        :root { --gold: #d4af37; --forest: #050a05; --eclipse: #2d1b00; }
+        body { margin: 0; background: var(--forest); color: white; font-family: 'Cairo', sans-serif; overflow: hidden; transition: background 1s; }
+        .page { display: none; height: 100vh; padding: 20px; box-sizing: border-box; }
         .page.active { display: block; }
+        .header-stats { background: rgba(0,0,0,0.9); padding: 15px; border-bottom: 2px solid var(--gold); display: flex; justify-content: space-around; }
 
-        /* واجهة الصيد */
-        #hunting-page { background: radial-gradient(circle, #0a1a0a 0%, #050a05 100%); position: relative; }
-        .forest-target {
-            position: absolute; font-size: 40px; cursor: pointer;
-            filter: drop-shadow(0 0 10px var(--gold));
-            transition: transform 0.2s; z-index: 100;
-        }
-        .forest-target:active { transform: scale(1.5); }
+        /* تأثير الخسوف */
+        body.eclipse-active { background: var(--eclipse) !important; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: inset 0 0 100px #000; } 50% { box-shadow: inset 0 0 200px var(--gold); } 100% { box-shadow: inset 0 0 100px #000; } }
 
-        /* شريط المعلومات */
-        .status-bar { background: rgba(0,0,0,0.8); padding: 10px; border-bottom: 1px solid var(--gold); display: flex; justify-content: space-around; }
+        /* الضباع */
+        .hyena { position: absolute; font-size: 50px; z-index: 3000; cursor: pointer; transition: 0.3s; animation: shake 0.5s infinite; }
+        @keyframes shake { 0% { transform: rotate(0); } 25% { transform: rotate(10deg); } 75% { transform: rotate(-10deg); } }
+
+        .lion-box { width: 180px; height: 180px; margin: 40px auto; border-radius: 50%; border: 4px solid var(--gold); position: relative; }
+        .lion-box img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid var(--gold); }
+        .nav-item { font-size: 12px; color: #555; text-align: center; }
+        .nav-item.active { color: var(--gold); }
         
-        /* أزرار التحكم السفلى */
-        .nav-bar {
-            position: fixed; bottom: 0; width: 100%; background: #000;
-            display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid var(--gold);
-        }
-        .nav-item { font-size: 12px; color: #555; cursor: pointer; text-align: center; flex: 1; }
-        .nav-item.active { color: var(--gold); font-weight: bold; }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .hidden { display: none; }
+        #event-msg { position: fixed; top: 80px; width: 100%; text-align: center; font-weight: bold; font-size: 20px; z-index: 4000; display: none; }
     </style>
 </head>
-<body>
+<body id="main-body">
 
-    <div id="intro-screen" onclick="this.style.display='none'; showPage('main-page')">
-        <div class="quote">
-            "طالما اختاروا قانون الغاب.. اختار ساعتها تكون ملك بمخلب وناب"<br>
-            <span style="font-size: 14px; color: #555;">(اضغط للعبور)</span>
-        </div>
+    <div id="event-msg"></div>
+
+    <div class="header-stats">
+        <div>💰 $LAST: <span id="balance">0.00</span></div>
+        <div>✨ غبار: <span id="dust">0</span></div>
     </div>
 
-    <div class="status-bar">
-        <div>💰 $LAST: <span id="balance-val">0</span></div>
-        <div>✨ غبار: <span id="dust-val">0</span></div>
-    </div>
-
-    <div id="main-page" class="page active" style="text-align: center;">
-        <h2 style="color: var(--gold)">العرش الملكي</h2>
-        <div style="margin: 50px auto; width: 200px; height: 200px; border-radius: 50%; border: 4px solid var(--gold); overflow: hidden; box-shadow: 0 0 30px rgba(212,175,55,0.3);" onclick="mine(event)">
-            <img src="1769632844655.png" style="width: 100%; height: 100%; object-fit: cover;" alt="Lion">
+    <div id="throne" class="page active" style="text-align: center;">
+        <div id="multiplier-tag" style="color: var(--gold); font-weight: bold; visibility: hidden;">مضاعف القوة: x10 🔥</div>
+        <div class="lion-box" onclick="manualMine(event)">
+            <img src="1769632844655.png" alt="Lion">
         </div>
-        <p>اضغط لتوليد الطاقة</p>
-    </div>
-
-    <div id="hunting-page" class="page">
-        <div style="text-align: center; padding: 10px;">
-            <h3 style="color: var(--gold); margin: 0;">موسم الصيد</h3>
-            <small>اصطد الغزلان الذهبية لجمع غبار الـ NFT</small>
-        </div>
-        <div id="forest-area" style="height: 70vh; width: 100%; position: relative;"></div>
+        <p id="status-text">التعدين التلقائي نشط...</p>
     </div>
 
     <div class="nav-bar">
-        <div class="nav-item active" onclick="showPage('main-page')">🏛️<br>العرش</div>
-        <div id="hunt-nav" class="nav-item" onclick="showPage('hunting-page'); startHunting();">🏹<br>الصيد</div>
+        <div class="nav-item active">🏛️<br>العرش</div>
+        <div class="nav-item">🏹<br>الصيد</div>
         <div class="nav-item">📈<br>تداول</div>
-        <div class="nav-item">🛒<br>متجر</div>
     </div>
 
     <script>
         let balance = 0;
         let dust = 0;
-        let huntInterval;
+        let multiplier = 1;
+        let autoRate = 0.1;
 
-        function showPage(pageId) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-            event.currentTarget.classList.add('active');
+        // نظام التعدين التلقائي
+        setInterval(() => {
+            balance += (autoRate * multiplier);
+            document.getElementById('balance').innerText = balance.toFixed(2);
+        }, 1000);
+
+        function manualMine(e) {
+            balance += (0.05 * multiplier);
+            document.getElementById('balance').innerText = balance.toFixed(2);
+            createEffect(e.pageX, e.pageY, "+" + (0.05 * multiplier).toFixed(2), multiplier > 1 ? "#fff" : "var(--gold)");
+        }
+
+        // --- محرك الأحداث العشوائية ---
+        setInterval(() => {
+            let dice = Math.random();
+            if (dice < 0.05) triggerEclipse(); // 5% احتمالية خسوف
+            else if (dice < 0.15) triggerHyenaRaid(); // 10% احتمالية هجوم ضباع
+        }, 20000); // يفحص كل 20 ثانية
+
+        function triggerEclipse() {
+            multiplier = 10;
+            const body = document.getElementById('main-body');
+            const msg = document.getElementById('event-msg');
+            body.classList.add('eclipse-active');
+            msg.innerText = "⚠️ خسوف ذهبي! طاقة x10 بدأت الآن!";
+            msg.style.display = 'block';
+            msg.style.color = "var(--gold)";
+            document.getElementById('multiplier-tag').style.visibility = 'visible';
+
+            setTimeout(() => {
+                multiplier = 1;
+                body.classList.remove('eclipse-active');
+                msg.style.display = 'none';
+                document.getElementById('multiplier-tag').style.visibility = 'hidden';
+            }, 15000); // يستمر 15 ثانية
+        }
+
+        function triggerHyenaRaid() {
+            const msg = document.getElementById('event-msg');
+            msg.innerText = "🐺 هجوم ضباع! اطرد الغزاة من العرين!";
+            msg.style.display = 'block';
+            msg.style.color = "red";
+
+            let hyena = document.createElement('div');
+            hyena.className = 'hyena';
+            hyena.innerText = "🐺";
+            hyena.style.left = Math.random() * 80 + "%";
+            hyena.style.top = Math.random() * 80 + "%";
             
-            if (pageId !== 'hunting-page') clearInterval(huntInterval);
-        }
+            let escaped = true;
+            hyena.onclick = () => {
+                escaped = false;
+                hyena.remove();
+                msg.innerText = "✅ تم سحق الضبع! العرين في أمان.";
+                setTimeout(() => msg.style.display = 'none', 2000);
+            };
 
-        function mine(e) {
-            balance += 0.01;
-            document.getElementById('balance-val').innerText = balance.toFixed(2);
-            createEffect(e.pageX, e.pageY, "+0.01", "var(--gold)");
-        }
+            document.body.appendChild(hyena);
 
-        function startHunting() {
-            const area = document.getElementById('forest-area');
-            huntInterval = setInterval(() => {
-                const target = document.createElement('div');
-                target.className = 'forest-target';
-                target.innerHTML = Math.random() > 0.8 ? "🦌" : "✨";
-                target.style.left = Math.random() * 80 + 10 + "%";
-                target.style.top = Math.random() * 80 + 10 + "%";
-                
-                target.onclick = function() {
-                    dust += 1;
-                    document.getElementById('dust-val').innerText = dust;
-                    this.remove();
-                    createEffect(event.pageX, event.pageY, "+1 Dust", "var(--dust-color)");
-                };
-
-                area.appendChild(target);
-                setTimeout(() => { if(target) target.remove(); }, 2000);
-            }, 1500);
+            setTimeout(() => {
+                if(escaped) {
+                    balance -= 2; // سرقة رصيد
+                    if(balance < 0) balance = 0;
+                    document.getElementById('balance').innerText = balance.toFixed(2);
+                    msg.innerText = "❌ الضباع سرقت 2.00 $LAST!";
+                    hyena.remove();
+                    setTimeout(() => msg.style.display = 'none', 3000);
+                }
+            }, 7000); // لديك 7 ثواني للضغط
         }
 
         function createEffect(x, y, text, color) {
             const el = document.createElement('div');
-            el.innerText = text;
-            el.style.position = 'absolute';
-            el.style.left = x + 'px';
-            el.style.top = y + 'px';
-            el.style.color = color;
-            el.style.fontWeight = 'bold';
-            el.style.pointerEvents = 'none';
+            el.innerText = text; el.style.position = 'absolute'; el.style.left = x+'px'; el.style.top = y+'px';
+            el.style.color = color; el.style.fontWeight = 'bold'; el.style.pointerEvents = 'none'; el.style.zIndex = "5000";
             document.body.appendChild(el);
-            el.animate([{ opacity: 1, transform: 'translateY(0)' }, { opacity: 0, transform: 'translateY(-100px)' }], 1000)
-              .onfinish = () => el.remove();
+            el.animate([{opacity: 1, transform: 'translateY(0)'}, {opacity: 0, transform: 'translateY(-150px)'}], 1000).onfinish = () => el.remove();
         }
     </script>
 </body>
